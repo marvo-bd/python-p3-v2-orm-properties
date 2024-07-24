@@ -2,7 +2,6 @@
 from __init__ import CURSOR, CONN
 from department import Department
 
-
 class Employee:
 
     # Dictionary of objects saved to the database.
@@ -47,6 +46,11 @@ class Employee:
         """ Insert a new row with the name, job title, and department id values of the current Employee object.
         Update object id attribute using the primary key value of new row.
         Save the object in local dictionary using table row's PK as dictionary key"""
+        if not isinstance(self.department_id, int) or self.department_id <= 0:
+            raise ValueError("Department ID must be a positive integer.")
+        if not Department.find_by_id(self.department_id):
+            raise ValueError("Invalid department ID.")
+
         sql = """
                 INSERT INTO employees (name, job_title, department_id)
                 VALUES (?, ?, ?)
@@ -60,6 +64,11 @@ class Employee:
 
     def update(self):
         """Update the table row corresponding to the current Employee instance."""
+        if not isinstance(self.department_id, int) or self.department_id <= 0:
+            raise ValueError("Department ID must be a positive integer.")
+        if not Department.find_by_id(self.department_id):
+            raise ValueError("Invalid department ID.")
+
         sql = """
             UPDATE employees
             SET name = ?, job_title = ?, department_id = ?
@@ -142,8 +151,28 @@ class Employee:
         sql = """
             SELECT *
             FROM employees
-            WHERE name is ?
+            WHERE name = ?
         """
 
         row = CURSOR.execute(sql, (name,)).fetchone()
         return cls.instance_from_db(row) if row else None
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str) or not value:
+            raise ValueError("Name must be a non-empty string.")
+        self._name = value
+
+    @property
+    def job_title(self):
+        return self._job_title
+
+    @job_title.setter
+    def job_title(self, value):
+        if not isinstance(value, str) or not value:
+            raise ValueError("Job title must be a non-empty string.")
+        self._job_title = value
